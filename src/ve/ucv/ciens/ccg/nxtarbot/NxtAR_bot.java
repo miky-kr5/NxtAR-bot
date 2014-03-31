@@ -15,11 +15,47 @@
  */
 package ve.ucv.ciens.ccg.nxtarbot;
 
-import lejos.nxt.Button;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+import lejos.nxt.comm.Bluetooth;
+import lejos.nxt.comm.NXTConnection;
+import ve.ucv.ciens.ccg.nxtarbot.threads.CommRecv;
+import ve.ucv.ciens.ccg.nxtarbot.threads.CommSend;
 
 public class NxtAR_bot{
+	private static DataOutputStream dataOutputStream;
+	private static DataInputStream dataInputStream;
+	private static NXTConnection bluetoothConnection;
+	private static CommRecv recv;
+	private static CommSend send;
+
 	public static void main(String[] args){
-		System.out.println("Hello, world!");
-		Button.waitForAnyPress();
+		bluetoothConnection = Bluetooth.waitForConnection();
+		bluetoothConnection.setIOMode(NXTConnection.RAW);
+		dataOutputStream = bluetoothConnection.openDataOutputStream();
+		dataInputStream = bluetoothConnection.openDataInputStream();
+
+		System.out.println("Connected");
+
+		send = new CommSend(dataOutputStream);
+		recv = new CommRecv(dataInputStream);
+
+		recv.start();
+		send.start();
+
+		try{
+			recv.join();
+			send.join();
+		}catch(InterruptedException i){ }
+
+		try{
+			dataOutputStream.close();
+			dataInputStream.close();
+		}catch(IOException io){
+			System.out.println(io.getMessage());
+		}
+		bluetoothConnection.close();
 	}
 }
