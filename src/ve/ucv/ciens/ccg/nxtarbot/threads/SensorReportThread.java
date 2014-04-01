@@ -19,29 +19,32 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import lejos.nxt.LightSensor;
-import lejos.nxt.SensorPort;
 
-public class CommSend extends Thread {
+public class SensorReportThread extends Thread{
 	private boolean done;
-	private byte msg;
-	private LightSensor light;
-	private DataOutputStream oStream;
+	private LightSensor lightSensor;
+	private DataOutputStream outputStream;
 
-	public CommSend(DataOutputStream oStream){
-		light = new LightSensor(SensorPort.S1);
+	public SensorReportThread(DataOutputStream outputStream, LightSensor lightSensor){
+		this.lightSensor = lightSensor;
 		done = false;
-		msg = 0;
-		this.oStream = oStream;
+		this.outputStream = outputStream;
+	}
+
+	public void finish(){
+		done = true;
 	}
 
 	@Override
 	public void run(){
+		byte message = 0;
+
 		while(!done){
 			try{
-				if((msg = (byte)light.getLightValue()) < 40){
-					oStream.writeByte(msg);
-					oStream.flush();
-				}
+				message = (byte)lightSensor.getLightValue();
+				outputStream.writeByte(message);
+				outputStream.flush();
+
 			}catch(IOException io){
 				done = true;
 			}

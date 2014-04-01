@@ -13,30 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ve.ucv.ciens.ccg.nxtarbot.threads;
+package ve.ucv.ciens.ccg.nxtarbot.protocol;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-
-public class CommRecv extends Thread {
-	private boolean done;
-	private byte msg;
-	private DataInputStream iStream;
-
-	public CommRecv(DataInputStream iStream){
-		done = false;
-		this.iStream = iStream;
-	}
-
-	@Override
-	public void run(){
-		while(!done){
-			try{
-				msg = iStream.readByte();
-				System.out.println("Byte: " + Byte.toString(msg));
-			}catch(IOException io){
-				done = true;
-			}
-		}
-	}
+public abstract class MotorMasks {
+	public static final byte MOTOR_A   = (byte)0x01;
+	public static final byte MOTOR_B   = (byte)0x02;
+	public static final byte MOTOR_C   = (byte)0x04;
+	public static final byte DIRECTION = (byte)0x08;
+	public static final byte RECENTER  = (byte)0xF0;
 }

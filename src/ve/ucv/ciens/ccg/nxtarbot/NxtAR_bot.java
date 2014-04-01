@@ -19,19 +19,58 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import lejos.nxt.Button;
+import lejos.nxt.ButtonListener;
+import lejos.nxt.LightSensor;
+import lejos.nxt.Motor;
+import lejos.nxt.SensorPort;
 import lejos.nxt.comm.Bluetooth;
 import lejos.nxt.comm.NXTConnection;
-import ve.ucv.ciens.ccg.nxtarbot.threads.CommRecv;
-import ve.ucv.ciens.ccg.nxtarbot.threads.CommSend;
+import ve.ucv.ciens.ccg.nxtarbot.threads.MotorControlThread;
+import ve.ucv.ciens.ccg.nxtarbot.threads.SensorReportThread;
 
 public class NxtAR_bot{
 	private static DataOutputStream dataOutputStream;
 	private static DataInputStream dataInputStream;
 	private static NXTConnection bluetoothConnection;
-	private static CommRecv recv;
-	private static CommSend send;
+	private static MotorControlThread recvThread;
+	private static SensorReportThread sendThread;
+
+	private static void quit(){
+		if(recvThread != null) recvThread.finish();
+		if(sendThread != null) sendThread.finish();
+
+		if(bluetoothConnection != null){
+			try{
+				dataOutputStream.close();
+				dataInputStream.close();
+			}catch(IOException io){
+				System.out.println(io.getMessage());
+			}
+			bluetoothConnection.close();
+		}
+	}
 
 	public static void main(String[] args){
+		Motor.A.resetTachoCount();
+		Motor.B.resetTachoCount();
+		Motor.C.resetTachoCount();
+
+		LightSensor lightSensor = new LightSensor(SensorPort.S1);
+		lightSensor.setFloodlight(false);
+
+		System.out.println("Point at dark and press ENTER");
+		Button.ENTER.waitForPress();
+		lightSensor.calibrateLow();
+		System.out.println("--/--");
+
+		System.out.println("Point at light and press ENTER");
+		Button.ENTER.waitForPress();
+		lightSensor.calibrateHigh();
+		System.out.println("--/--");
+
+		Button.ESCAPE.addButtonListener(new QuitButtonListener());
+
 		bluetoothConnection = Bluetooth.waitForConnection();
 		bluetoothConnection.setIOMode(NXTConnection.RAW);
 		dataOutputStream = bluetoothConnection.openDataOutputStream();
@@ -39,23 +78,27 @@ public class NxtAR_bot{
 
 		System.out.println("Connected");
 
-		send = new CommSend(dataOutputStream);
-		recv = new CommRecv(dataInputStream);
+		sendThread = new SensorReportThread(dataOutputStream, lightSensor);
+		recvThread = new MotorControlThread(dataInputStream);
 
-		recv.start();
-		send.start();
+		recvThread.start();
+		sendThread.start();
 
 		try{
-			recv.join();
-			send.join();
+			recvThread.join();
+			sendThread.join();
 		}catch(InterruptedException i){ }
 
-		try{
-			dataOutputStream.close();
-			dataInputStream.close();
-		}catch(IOException io){
-			System.out.println(io.getMessage());
+		quit();
+	}
+
+	private static class QuitButtonListener implements ButtonListener{
+		@Override
+		public void buttonPressed(Button b) {
+			quit();
 		}
-		bluetoothConnection.close();
+
+		@Override
+		public void buttonReleased(Button b){ }
 	}
 }
