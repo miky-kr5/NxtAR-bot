@@ -23,19 +23,49 @@ import lejos.nxt.Battery;
 import lejos.nxt.Motor;
 import ve.ucv.ciens.ccg.nxtarbot.protocol.MotorMasks;
 
+/**
+ * <p>Class to control the motors on the robot based on isntructions received via
+ * Bluetooth.</p>
+ * 
+ * <p>The instructions are codified on a very simple protocol:<p>
+ * <ul>
+ *     <li> Every protocol packet is exactly two bytes long.</li>
+ *     <li> The lowest order byte codifies the motor to control and the rotation
+ *          direction of the same on it's highest four bits. The lower four bits
+ *          indicate that the central motor should return to it's position of
+ *          origin. This four bits can also be used for future expansions.
+ *     <li> The highest order byte, a number between 0 and 100, contains the
+ *          power to send to the motor.</li> 
+ * </ul>
+ */
 public class MotorControlThread extends Thread{
 	private boolean done;
 	private DataInputStream inputStream;
 
-	public MotorControlThread(DataInputStream inputStream){
+	/**
+	 * Create a new MotorControlThread.
+	 * 
+	 * @param inputStream The stream to receive motor commands from.
+	 * @throws NullPointerException If inputStream is null.
+	 */
+	public MotorControlThread(DataInputStream inputStream) throws NullPointerException{
+		if(inputStream == null)
+			throw new NullPointerException("Input stream is null.");
+
 		done = false;
 		this.inputStream = inputStream;
 	}
 
+	/**
+	 * <p>Marks this thread as ready to finish cleanly.</p>
+	 */
 	public void finish(){
 		done = true;
 	}
 
+	/**
+	 * <p>Receive and process motor control instructions via Bluetooth.</p>
+	 */
 	@Override
 	public void run(){
 		boolean motorA, motorB, motorC, recenterMotorB;
@@ -44,9 +74,11 @@ public class MotorControlThread extends Thread{
 
 		while(!done){
 			try{
+				// Read the two bytes indicated by the protocol.
 				message[0] = inputStream.readByte();
 				message[1] = inputStream.readByte();
 
+				// Decode the instruction parameters.
 				recenterMotorB = (message[0] & MotorMasks.RECENTER)  > 0 ? true : false;
 				motorA = (message[0] & MotorMasks.MOTOR_A) > 0 ? true : false;
 				motorB = (message[0] & MotorMasks.MOTOR_B) > 0 ? true : false;
@@ -54,6 +86,7 @@ public class MotorControlThread extends Thread{
 				direction = (message[0] & MotorMasks.DIRECTION) > 0 ? BasicMotorPort.FORWARD : BasicMotorPort.BACKWARD;
 
 				if(motorA){
+					// Set motor A to run at specified speed.
 					Motor.A.setSpeed(message[1] * Battery.getVoltage());
 					if(direction == BasicMotorPort.FORWARD)
 						Motor.A.forward();
@@ -62,6 +95,7 @@ public class MotorControlThread extends Thread{
 				}
 
 				if(motorB){
+					// Set motor B to run at specified speed.
 					Motor.B.setSpeed(message[1] * Battery.getVoltage());
 					if(direction == BasicMotorPort.FORWARD)
 						Motor.B.forward();
@@ -70,6 +104,7 @@ public class MotorControlThread extends Thread{
 				}
 
 				if(motorC){
+					// Set motor C to run at specified speed.
 					Motor.C.setSpeed(message[1] * Battery.getVoltage());
 					if(direction == BasicMotorPort.FORWARD)
 						Motor.C.forward();
@@ -78,6 +113,8 @@ public class MotorControlThread extends Thread{
 				}
 
 				if(recenterMotorB){
+					// Return motor B to it's origin. Rotate in the direction
+					// that implies less movement.
 					tacho = Motor.B.getTachoCount() % 360;
 					rotation = tacho > 180 ? 360 - tacho : -(tacho);
 					Motor.B.rotate(rotation);
@@ -85,6 +122,7 @@ public class MotorControlThread extends Thread{
 				}
 
 			}catch(IOException io){
+				// If disconnection terminate.
 				done = true;
 			}
 		}

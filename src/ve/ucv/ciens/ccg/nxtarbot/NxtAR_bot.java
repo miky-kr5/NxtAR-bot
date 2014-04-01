@@ -29,6 +29,9 @@ import lejos.nxt.comm.NXTConnection;
 import ve.ucv.ciens.ccg.nxtarbot.threads.MotorControlThread;
 import ve.ucv.ciens.ccg.nxtarbot.threads.SensorReportThread;
 
+/**
+ * Core class for the robot module of NxtAR.
+ */
 public class NxtAR_bot{
 	private static DataOutputStream dataOutputStream;
 	private static DataInputStream dataInputStream;
@@ -36,6 +39,10 @@ public class NxtAR_bot{
 	private static MotorControlThread recvThread;
 	private static SensorReportThread sendThread;
 
+	/**
+	 * <p>Finishes the communication threads anc closes the Bluetooth data streams, 
+	 * then quits the application.</p>
+	 */
 	private static void quit(){
 		if(recvThread != null) recvThread.finish();
 		if(sendThread != null) sendThread.finish();
@@ -53,13 +60,23 @@ public class NxtAR_bot{
 		System.exit(0);
 	}
 
+	/**
+	 * <p>Application entry point.</p>
+	 * <p>Resets the motors, calibrates the light sensor and starts the
+	 * networking threads.</p>
+	 * 
+	 * @param args Command line arguments.
+	 */
 	public static void main(String[] args){
+		// Set a listener to force quit if the ESCAPE button is pressed.
 		Button.ESCAPE.addButtonListener(new QuitButtonListener());
 
+		// Reset the rotation counts of the motors.
 		Motor.A.resetTachoCount();
 		Motor.B.resetTachoCount();
 		Motor.C.resetTachoCount();
 
+		// Start the light sensor and calibrate it.
 		LightSensor lightSensor = new LightSensor(SensorPort.S1);
 		lightSensor.setFloodlight(false);
 
@@ -73,6 +90,8 @@ public class NxtAR_bot{
 		lightSensor.calibrateHigh();
 		System.out.println("--/--");
 
+		// Connect with a Bluetooth device in raw mode. Then get the connection
+		// streams.
 		bluetoothConnection = Bluetooth.waitForConnection();
 		bluetoothConnection.setIOMode(NXTConnection.RAW);
 		dataOutputStream = bluetoothConnection.openDataOutputStream();
@@ -80,6 +99,7 @@ public class NxtAR_bot{
 
 		System.out.println("Connected");
 
+		// Start the networking threads and wait for them to finish. 
 		sendThread = new SensorReportThread(dataOutputStream, lightSensor);
 		recvThread = new MotorControlThread(dataInputStream);
 
@@ -94,12 +114,21 @@ public class NxtAR_bot{
 		quit();
 	}
 
+	/**
+	 * <p>Force quit button listener.</p>
+	 */
 	private static class QuitButtonListener implements ButtonListener{
+		/**
+		 * Force quit.
+		 */
 		@Override
 		public void buttonPressed(Button b) {
 			quit();
 		}
 
+		/**
+		 * Do nothing.
+		 */
 		@Override
 		public void buttonReleased(Button b){ }
 	}

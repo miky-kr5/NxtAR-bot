@@ -20,21 +20,43 @@ import java.io.IOException;
 
 import lejos.nxt.LightSensor;
 
+/**
+ * <p>Class to report the values read from the different sensors through a
+ * Bluetooth stream.</p>
+ */
 public class SensorReportThread extends Thread{
 	private boolean done;
 	private LightSensor lightSensor;
 	private DataOutputStream outputStream;
 
-	public SensorReportThread(DataOutputStream outputStream, LightSensor lightSensor){
+	/**
+	 * <p>Create a new SensorReportThread.</p>
+	 * 
+	 * @param outputStream The stream to send the data to.
+	 * @param lightSensor An initialized and calibrated light sensor.
+	 */
+	public SensorReportThread(DataOutputStream outputStream, LightSensor lightSensor) throws NullPointerException{
+		if(outputStream == null)
+			throw new NullPointerException("Output stream is null.");
+
+		if(lightSensor == null)
+			throw new NullPointerException("Sensor is null.");
+
 		this.lightSensor = lightSensor;
 		done = false;
 		this.outputStream = outputStream;
 	}
 
+	/**
+	 * <p>Marks this thread as ready to finish cleanly.</p>
+	 */
 	public void finish(){
 		done = true;
 	}
 
+	/**
+	 * <p>Writes the values read from the light sensor to the output stream.</p>
+	 */
 	@Override
 	public void run(){
 		byte message = 0;
@@ -44,8 +66,8 @@ public class SensorReportThread extends Thread{
 				message = (byte)lightSensor.getLightValue();
 				outputStream.writeByte(message);
 				outputStream.flush();
-
 			}catch(IOException io){
+				// If disconnection terminate.
 				done = true;
 			}
 		}
