@@ -49,9 +49,13 @@ public class NxtAR_bot{
 			}
 			bluetoothConnection.close();
 		}
+
+		System.exit(0);
 	}
 
 	public static void main(String[] args){
+		Button.ESCAPE.addButtonListener(new QuitButtonListener());
+
 		Motor.A.resetTachoCount();
 		Motor.B.resetTachoCount();
 		Motor.C.resetTachoCount();
@@ -59,17 +63,15 @@ public class NxtAR_bot{
 		LightSensor lightSensor = new LightSensor(SensorPort.S1);
 		lightSensor.setFloodlight(false);
 
-		System.out.println("Point at dark and press ENTER");
+		System.out.println("Point at dark\nand press ENTER");
 		Button.ENTER.waitForPress();
 		lightSensor.calibrateLow();
 		System.out.println("--/--");
 
-		System.out.println("Point at light and press ENTER");
+		System.out.println("Point at light\nand press ENTER");
 		Button.ENTER.waitForPress();
 		lightSensor.calibrateHigh();
 		System.out.println("--/--");
-
-		Button.ESCAPE.addButtonListener(new QuitButtonListener());
 
 		bluetoothConnection = Bluetooth.waitForConnection();
 		bluetoothConnection.setIOMode(NXTConnection.RAW);
