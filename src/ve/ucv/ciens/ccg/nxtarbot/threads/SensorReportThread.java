@@ -67,7 +67,7 @@ public class SensorReportThread extends Thread{
 				outputStream.writeByte(message);
 				outputStream.flush();
 			}catch(IOException io){
-				// If disconnection terminate.
+				// On disconnection terminate.
 				done = true;
 			}
 		}

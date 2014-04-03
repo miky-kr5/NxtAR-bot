@@ -122,7 +122,7 @@ public class MotorControlThread extends Thread{
 				}
 
 			}catch(IOException io){
-				// If disconnection terminate.
+				// On disconnection terminate.
 				done = true;
 			}
 		}
