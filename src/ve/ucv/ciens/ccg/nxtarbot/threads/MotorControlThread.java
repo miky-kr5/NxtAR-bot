@@ -79,7 +79,7 @@ public class MotorControlThread extends Thread{
 				message[1] = inputStream.readByte();
 
 				// Decode the instruction parameters.
-				recenterMotorB = (message[0] & MotorMasks.RECENTER)  > 0 ? true : false;
+				recenterMotorB = (message[0] & MotorMasks.RECENTER) > 0 ? true : false;
 				motorA = (message[0] & MotorMasks.MOTOR_A) > 0 ? true : false;
 				motorB = (message[0] & MotorMasks.MOTOR_B) > 0 ? true : false;
 				motorC = (message[0] & MotorMasks.MOTOR_C) > 0 ? true : false;
@@ -113,12 +113,12 @@ public class MotorControlThread extends Thread{
 				}
 
 				if(recenterMotorB){
-					// Return motor B to it's origin. Rotate in the direction
-					// that implies less movement.
+					System.out.println("RECENTER");
+					// Return motor B to it's origin.
+					Motor.B.setSpeed(50 * Battery.getVoltage());
 					tacho = Motor.B.getTachoCount() % 360;
-					rotation = tacho > 180 ? 360 - tacho : -(tacho);
-					Motor.B.rotate(rotation);
-					Motor.B.resetTachoCount();
+					rotation = -(tacho);
+					Motor.B.rotate(rotation, false);
 				}
 
 			}catch(IOException io){

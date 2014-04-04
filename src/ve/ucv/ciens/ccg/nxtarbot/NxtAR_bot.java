@@ -122,8 +122,9 @@ public class NxtAR_bot{
 		 * Force quit.
 		 */
 		@Override
-		public void buttonPressed(Button b) {
-			quit();
+		public void buttonPressed(Button b){
+			System.exit(0);
+			//quit();
 		}
 
 		/**
