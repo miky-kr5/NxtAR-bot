@@ -40,7 +40,7 @@ public class NxtAR_bot{
 	private static SensorReportThread sendThread;
 
 	/**
-	 * <p>Finishes the communication threads anc closes the Bluetooth data streams, 
+	 * <p>Finishes the communication threads and closes the Bluetooth data streams, 
 	 * then quits the application.</p>
 	 */
 	private static void quit(){
@@ -78,7 +78,7 @@ public class NxtAR_bot{
 
 		// Start the light sensor and calibrate it.
 		LightSensor lightSensor = new LightSensor(SensorPort.S1);
-		lightSensor.setFloodlight(false);
+		lightSensor.setFloodlight(true);
 
 		System.out.println("Point at dark\nand press ENTER");
 		Button.ENTER.waitForPress();
@@ -89,6 +89,7 @@ public class NxtAR_bot{
 		Button.ENTER.waitForPress();
 		lightSensor.calibrateHigh();
 		System.out.println("--/--");
+		System.out.println("Waiting for BT\nconnection");
 
 		// Connect with a Bluetooth device in raw mode. Then get the connection
 		// streams.
@@ -97,6 +98,7 @@ public class NxtAR_bot{
 		dataOutputStream = bluetoothConnection.openDataOutputStream();
 		dataInputStream = bluetoothConnection.openDataInputStream();
 
+		System.out.println("--/--");
 		System.out.println("Connected");
 
 		// Start the networking threads and wait for them to finish. 
@@ -118,19 +120,15 @@ public class NxtAR_bot{
 	 * <p>Force quit button listener.</p>
 	 */
 	private static class QuitButtonListener implements ButtonListener{
-		/**
-		 * Force quit.
-		 */
 		@Override
 		public void buttonPressed(Button b){
+			// Force quit.
+			System.out.println("--/--");
+			System.out.println("Quitting");
 			System.exit(0);
-			//quit();
 		}
 
-		/**
-		 * Do nothing.
-		 */
 		@Override
-		public void buttonReleased(Button b){ }
+		public void buttonReleased(Button b){ /* Ignore */ }
 	}
 }

@@ -18,6 +18,7 @@ package ve.ucv.ciens.ccg.nxtarbot.protocol;
 /**
  * <p>Bit masks used to code/decode the control instructions sent by NxtAR-cam to
  * NxtAR-bot.</p>
+ *
  * <p>Expansions 1-3 are currently unused.</p>
  */
 public abstract class MotorMasks {
@@ -27,6 +28,6 @@ public abstract class MotorMasks {
 	public static final byte DIRECTION   = (byte)0x08;
 	public static final byte RECENTER    = (byte)0x10;
 	public static final byte EXPANSION_1 = (byte)0x20;
-	public static final byte EXPANSION_2 = (byte)0x20;
-	public static final byte EXPANSION_3 = (byte)0x20;
+	public static final byte EXPANSION_2 = (byte)0x40;
+	public static final byte EXPANSION_3 = (byte)0x80;
 }
