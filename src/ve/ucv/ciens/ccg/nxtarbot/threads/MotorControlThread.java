@@ -125,7 +125,7 @@ public class MotorControlThread extends Thread{
 				if(rotate90){
 					// Rotate 90 degrees.
 					System.out.println("ROTATE 90");
-					Motor.B.rotate(90, false);
+					Motor.B.rotate(-120, false);
 				}
 
 			}catch(IOException io){
