@@ -68,7 +68,7 @@ public class MotorControlThread extends Thread{
 	 */
 	@Override
 	public void run(){
-		boolean motorA, motorB, motorC, recenterMotorB;
+		boolean motorA, motorB, motorC, recenterMotorB, rotate90;
 		int direction, rotation, tacho;
 		byte[] message = new byte[2];
 
@@ -79,11 +79,12 @@ public class MotorControlThread extends Thread{
 				message[1] = inputStream.readByte();
 
 				// Decode the instruction parameters.
+				rotate90       = (message[0] & MotorMasks.ROTATE_90) > 0 ? true : false;
 				recenterMotorB = (message[0] & MotorMasks.RECENTER) > 0 ? true : false;
-				motorA = (message[0] & MotorMasks.MOTOR_A) > 0 ? true : false;
-				motorB = (message[0] & MotorMasks.MOTOR_B) > 0 ? true : false;
-				motorC = (message[0] & MotorMasks.MOTOR_C) > 0 ? true : false;
-				direction = (message[0] & MotorMasks.DIRECTION) > 0 ? BasicMotorPort.FORWARD : BasicMotorPort.BACKWARD;
+				motorA         = (message[0] & MotorMasks.MOTOR_A) > 0 ? true : false;
+				motorB         = (message[0] & MotorMasks.MOTOR_B) > 0 ? true : false;
+				motorC         = (message[0] & MotorMasks.MOTOR_C) > 0 ? true : false;
+				direction      = (message[0] & MotorMasks.DIRECTION) > 0 ? BasicMotorPort.FORWARD : BasicMotorPort.BACKWARD;
 
 				if(motorA){
 					// Set motor A to run at specified speed.
@@ -113,16 +114,22 @@ public class MotorControlThread extends Thread{
 				}
 
 				if(recenterMotorB){
-					System.out.println("RECENTER");
 					// Return motor B to it's origin.
+					System.out.println("RECENTER");
 					Motor.B.setSpeed(50 * Battery.getVoltage());
 					tacho = Motor.B.getTachoCount() % 360;
 					rotation = -(tacho);
 					Motor.B.rotate(rotation, false);
 				}
 
+				if(rotate90){
+					// Rotate 90 degrees.
+					System.out.println("ROTATE 90");
+					Motor.B.rotate(-120, false);
+				}
+
 			}catch(IOException io){
-				// On disconnection terminate.
+				// On disconnection, terminate.
 				done = true;
 			}
 		}
